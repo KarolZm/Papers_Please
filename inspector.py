@@ -64,7 +64,6 @@ class Inspector:
                     result = result.replace("NATION", "nationality")
                     result = result.replace("NAME", "name")
                     result = result.replace("DOB", "date of birth")
-
                     return result
 
                 # Check for document expiration date
@@ -216,7 +215,9 @@ class Inspector:
     def __update_allowed_nations(self, regulation):
         nations = regulation.split("of ")[1].split(", ")
         if "Allow" in regulation:
-            self.nations.extend(nations)
+            for nation in nations:
+                if nation not in self.nations:
+                    self.nations.append(nation)
         elif "Deny" in regulation:
             for nation in nations:
                 self.nations.remove(nation)
