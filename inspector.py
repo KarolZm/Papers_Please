@@ -106,8 +106,13 @@ class Inspector:
         # Check required vaccinations
         for vaccination in self.vaccinations[citizen["NATION"]]:
             if vaccination not in citizen['VACCINES'].split(", "):
-                result = f"Entry denied: missing required {vaccination} vaccination."
+                result = f"Entry denied: missing required vaccination."
                 return result
+
+        # Check if work pass is present for workers
+        if "PURPOSE" in citizen.keys():
+            if citizen["PURPOSE"] == "WORK" and "work pass" in self.documents["Workers"] and "work pass" not in documents.keys():
+                result = "Entry denied: missing required work pass."
 
         if result:
             # already exists a reason for deny
