@@ -41,6 +41,7 @@ class Inspector:
             document_name = document.replace("_", " ")
             documents[document_name] = document_properties
         print(f"Documents: {documents}")
+
         citizen = {}
         # Fill citizen attributes and look for data conflicts
         for document, properties in documents.items():
@@ -70,7 +71,6 @@ class Inspector:
 
                     if date(exp_year, exp_month, exp_day) <= self.expiration_date:
                         result = f"Entry denied: {document} expired."
-                        # return result
 
                 # Add attribute to citizen's data
                 if attribute not in citizen.keys():
@@ -110,10 +110,8 @@ class Inspector:
                 try:
                     if vaccination not in citizen['VACCINES'].split(", "):
                         result = f"Entry denied: missing required vaccination."
-                        return result
                 except KeyError:
                     result = f"Entry denied: missing required vaccination."
-                    return result
         except KeyError:
             result = "Entry denied: missing required passport."
 
@@ -123,7 +121,7 @@ class Inspector:
                 result = "Entry denied: missing required work pass."
 
         if result:
-            # already exists a reason for deny
+            # Already exists a reason for deny
             return result
 
         # Entrant pass. Check country.
@@ -172,6 +170,7 @@ class Inspector:
             documents[i] = documents[i].replace("_", " ")
         print(f"Documents for {who}: {documents}")
 
+        # Check who the documents requirement applies to
         if "Citizens" in who:
             nations = who.split("of ")[1].split(", ")
             for nation in nations:
@@ -195,6 +194,8 @@ class Inspector:
         regulation_splitted = regulation_simplified.split(" require ")
         who = regulation_splitted[0]
         vaccinations = regulation_splitted[1].split(", ")
+
+        # Check who the vaccinations requirement applies to
         if "Citizens" in who:
             nations = who.split("of ")[1].split(", ")
             for nation in nations:
