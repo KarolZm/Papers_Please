@@ -4,16 +4,11 @@ from datetime import date
 class Inspector:
 
     def __init__(self):
-        self.nations = []   #TODO duplicates possible
+        self.nations = []
         self.documents = {}
         self.vaccinations = {}
         self.criminal = ""
         self.expiration_date = date(1982, 11, 22)
-        # Possible documents for citizens of Arstotzka
-        self.arstotzka_docs = ["passport", "certificate_of_vaccination", "ID_card"]
-        # Possible documents for foreigners
-        self.foreigner_docs = ["passport", "certificate_of_vaccination", "access_permit",
-                               "work_pass", "grant_of_asylum", "diplomatic_authorization"]
         # All countries set
         self.countries = {"Arstotzka", "Antegria", "Impor", "Kolechia", "Obristan", "Republia", "United Federation"}
         for country in self.countries:
@@ -21,14 +16,14 @@ class Inspector:
             self.vaccinations[country] = []
         else:
             self.documents["Workers"] = []
-        # Common attributes
+        # Common attributes for all documents - check for mismatch
         self.common_attributes = {"ID number", "NAME", "NATION", "DOB", "SEX"}
 
     def inspect(self, entrant):
         """
         Method used to inspect a specific entrant
         :param entrant:
-        :return:
+        :return: pass, detainment or deny information
         """
         print(f"Entrant: {entrant}")
         if not entrant:
@@ -84,30 +79,43 @@ class Inspector:
         print(f"Citizen: {citizen}")
 
         # Check for nationality permission
-        if citizen["NATION"] not in self.nations:
-            result = "Entry denied: citizen of banned nation."
-            return result
+        try:
+            if citizen["NATION"] not in self.nations:
+                result = "Entry denied: citizen of banned nation."
+                return result
+        except KeyError:
+            result = "Entry denied: missing required passport."
 
         # Check required documents
-        for document in self.documents[citizen["NATION"]]:
-            if document in documents.keys():
-                continue
-            if document != "access permit":
-                result = f"Entry denied: missing required {document}."
-                return result
-            else:
-                if not any(doc in documents.keys() for doc in ["grant of asylum", "diplomatic authorization"]):
+        try:
+            for document in self.documents[citizen["NATION"]]:
+                if document in documents.keys():
+                    continue
+                if document != "access permit":
                     result = f"Entry denied: missing required {document}."
                     return result
-                elif "diplomatic authorization" in documents.keys() and "Arstotzka" not in citizen["ACCESS"].split(", "):
-                    result = f"Entry denied: invalid diplomatic authorization."
-                    return result
+                else:
+                    if not any(doc in documents.keys() for doc in ["grant of asylum", "diplomatic authorization"]):
+                        result = f"Entry denied: missing required {document}."
+                        return result
+                    elif "diplomatic authorization" in documents.keys() and "Arstotzka" not in citizen["ACCESS"].split(", "):
+                        result = f"Entry denied: invalid diplomatic authorization."
+                        return result
+        except KeyError:
+            result = "Entry denied: missing required passport."
 
         # Check required vaccinations
-        for vaccination in self.vaccinations[citizen["NATION"]]:
-            if vaccination not in citizen['VACCINES'].split(", "):
-                result = f"Entry denied: missing required vaccination."
-                return result
+        try:
+            for vaccination in self.vaccinations[citizen["NATION"]]:
+                try:
+                    if vaccination not in citizen['VACCINES'].split(", "):
+                        result = f"Entry denied: missing required vaccination."
+                        return result
+                except KeyError:
+                    result = f"Entry denied: missing required vaccination."
+                    return result
+        except KeyError:
+            result = "Entry denied: missing required passport."
 
         # Check if work pass is present for workers
         if "PURPOSE" in citizen.keys():
@@ -118,9 +126,12 @@ class Inspector:
             # already exists a reason for deny
             return result
 
+        # Entrant pass. Check country.
         if citizen["NATION"] == "Arstotzka":
+            # Countryman
             result = "Glory to Arstotzka."
         else:
+            # Foreigner
             result = "Cause no trouble."
         return result
 
@@ -130,7 +141,8 @@ class Inspector:
         :param bulletin:
         :return:
         """
-        print(bulletin)
+        print(f"Bulletin:\n{bulletin}\n---------------")
+
         regulations = bulletin.split("\n")
         for regulation in regulations:
             if "citizens" in regulation:
@@ -156,7 +168,6 @@ class Inspector:
         who = regulation_splitted[0]
         documents = regulation_splitted[1].split(", ")
 
-        #TODO
         for i in range(len(documents)):
             documents[i] = documents[i].replace("_", " ")
         print(f"Documents for {who}: {documents}")
